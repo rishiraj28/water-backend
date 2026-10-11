@@ -26,22 +26,22 @@ public class ComplaintController {
     }
 
     @GetMapping("/{id}")
-    public Complaint getComplaintById(@PathVariable Long id) {
+    public Complaint getComplaintById(@PathVariable String id) {
         return complaintService.getComplaintById(id);
     }
 
     @PutMapping("/{id}")
-    public Complaint updateComplaint(@PathVariable Long id, @RequestBody Complaint complaint) {
+    public Complaint updateComplaint(@PathVariable String id, @RequestBody Complaint complaint) {
         return complaintService.updateComplaint(id, complaint);
     }
 
     @PatchMapping("/{id}/status")
-    public Complaint updateComplaintStatus(@PathVariable Long id, @RequestBody Map<String, String> update) {
+    public Complaint updateComplaintStatus(@PathVariable String id, @RequestBody Map<String, String> update) {
         return complaintService.updateComplaintStatus(id, update.get("status"));
     }
 
     @DeleteMapping("/{id}")
-    public void deleteComplaint(@PathVariable Long id) {
+    public void deleteComplaint(@PathVariable String id) {
         complaintService.deleteComplaint(id);
     }
 }

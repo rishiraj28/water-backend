@@ -2,16 +2,13 @@ services:
   - type: web
     name: water-quality-backend
     runtime: docker
-    plan: starter
+    plan: free
+    region: singapore
     dockerfilePath: ./Dockerfile
     dockerContext: .
     healthCheckPath: /actuator/health
     envVars:
-      - key: DB_URL
-        sync: false
-      - key: DB_USERNAME
-        sync: false
-      - key: DB_PASSWORD
+      - key: MONGODB_URI
         sync: false
       - key: ADMIN_USERNAME
         sync: false

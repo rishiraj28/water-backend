@@ -1,13 +1,12 @@
 # Water Quality Monitoring Backend
 
-Spring Boot 3.3 service using Java 17, Maven, Spring Data JPA, and MySQL.
+Spring Boot 3.3 service using Java 17, Maven, Spring Data MongoDB, and MongoDB Atlas.
 
 ## Deploy on Render
 
-Create a Render Blueprint from this repository and use `render.yaml`. Provision a managed MySQL database separately, then set the following values in the Render service environment. Do not commit them:
+Create a Render Blueprint from this repository and use `render.yaml`. Create a MongoDB Atlas M0 cluster, add the Render service's outbound IP ranges to the Atlas network access list, then set the following values in the Render service environment. Do not commit them:
 
-- `DB_URL`: JDBC URL from the database provider, for example `jdbc:mysql://HOST:PORT/DATABASE?sslMode=REQUIRED`
-- `DB_USERNAME` and `DB_PASSWORD`: database credentials
+- `MONGODB_URI`: Atlas connection URI including the `wqm` database name
 - `ADMIN_USERNAME` and `ADMIN_PASSWORD`: dedicated administrator credentials; use a unique, long password
 - `APP_CORS_ALLOWED_ORIGINS`: exact Vercel site origin, such as `https://your-project.vercel.app`, without a trailing slash
 
@@ -15,7 +14,7 @@ Render supplies `PORT`. The `/actuator/health` endpoint is used as the service h
 
 ## Run Locally
 
-Create `src/main/resources/application.properties` from `src/main/resources/application.properties.example`, configure the database variables above, and set `ADMIN_USERNAME` and `ADMIN_PASSWORD` in the shell. Then run:
+Create `src/main/resources/application.properties` from `src/main/resources/application.properties.example`, set `MONGODB_URI` to `mongodb://localhost:27017/wqm`, and set `ADMIN_USERNAME` and `ADMIN_PASSWORD` in the shell. Then run:
 
 ```sh
 sh ./mvnw spring-boot:run
@@ -29,4 +28,4 @@ The default local port is `8081`. The actual `application.properties` file is ig
 sh ./mvnw test
 ```
 
-Tests use an in-memory H2 database and do not require the production MySQL credentials.
+Tests mock the Mongo repository and do not require a running MongoDB server or production credentials.

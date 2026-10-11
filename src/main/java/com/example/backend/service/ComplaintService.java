@@ -22,17 +22,17 @@ public class ComplaintService {
         return complaintRepository.findAll();
     }
 
-    public Complaint getComplaintById(Long id) {
+    public Complaint getComplaintById(String id) {
         return complaintRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Complaint not found with id: " + id));
     }
 
-    public Complaint updateComplaint(Long id, Complaint complaint) {
+    public Complaint updateComplaint(String id, Complaint complaint) {
         complaint.setId(id);
         return complaintRepository.save(complaint);
     }
 
-    public Complaint updateComplaintStatus(Long id, String status) {
+    public Complaint updateComplaintStatus(String id, String status) {
         if (status == null || !List.of("pending", "accepted", "rejected").contains(status)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid complaint status");
         }
@@ -42,7 +42,7 @@ public class ComplaintService {
         return complaintRepository.save(complaint);
     }
 
-    public void deleteComplaint(Long id) {
+    public void deleteComplaint(String id) {
         complaintRepository.deleteById(id);
     }
 }

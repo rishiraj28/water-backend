@@ -1,42 +1,34 @@
 package com.example.backend.entity;
 
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity
-@Table(name = "complaints")
+@Document(collection = "complaints")
 public class Complaint {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
     private String address;
 
-    @Column(nullable = false)
     private String zone;
 
-    @Column(nullable = false)
     private String complaintType;
 
-    @Column(nullable = false)
     private String phoneNumber;
 
-    @Column(nullable = false)
     private String emailAddress;
 
-    @Column(nullable = false, columnDefinition = "varchar(20) default 'pending'")
     private String status = "pending";
 
     // Getters and setters
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 

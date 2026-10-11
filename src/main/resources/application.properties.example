@@ -1,13 +1,6 @@
 spring.application.name=backend
 server.port=${PORT:8081}
-spring.datasource.url=${DB_URL:jdbc:mysql://localhost:3306/wqm}
-spring.datasource.username=${DB_USERNAME}
-spring.datasource.password=${DB_PASSWORD}
-
-spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.show-sql=false
-spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.data.mongodb.uri=${MONGODB_URI:mongodb://localhost:27017/wqm}
 
 app.admin.username=${ADMIN_USERNAME:}
 app.admin.password=${ADMIN_PASSWORD:}
