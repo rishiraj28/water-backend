@@ -1,26 +1,32 @@
 # Water Quality Monitoring Backend
 
-Spring Boot backend for the Water Quality Monitoring application. It uses Java 11, Maven, Spring Data JPA, and MySQL.
+Spring Boot 3.3 service using Java 17, Maven, Spring Data JPA, and MySQL.
 
-## Configure
+## Deploy on Render
 
-Create `src/main/resources/application.properties` from `src/main/resources/application.properties.example`, then provide the database credentials through environment variables:
+Create a Render Blueprint from this repository and use `render.yaml`. Provision a managed MySQL database separately, then set the following values in the Render service environment. Do not commit them:
 
-```sh
-cp src/main/resources/application.properties.example src/main/resources/application.properties
-export DB_URL=jdbc:mysql://localhost:3306/wqm
-export DB_USERNAME=your_mysql_username
-export DB_PASSWORD=your_mysql_password
-```
+- `DB_URL`: JDBC URL from the database provider, for example `jdbc:mysql://HOST:PORT/DATABASE?sslMode=REQUIRED`
+- `DB_USERNAME` and `DB_PASSWORD`: database credentials
+- `ADMIN_USERNAME` and `ADMIN_PASSWORD`: dedicated administrator credentials; use a unique, long password
+- `APP_CORS_ALLOWED_ORIGINS`: exact Vercel site origin, such as `https://your-project.vercel.app`, without a trailing slash
 
-The local `application.properties` file is ignored by Git. Do not commit database credentials or other secrets.
+Render supplies `PORT`. The `/actuator/health` endpoint is used as the service health check. The public API accepts complaint submissions; complaint reads, updates, and user-management endpoints require administrator authentication.
 
-## Run
+## Run Locally
 
-With MySQL running and the `wqm` database available:
+Create `src/main/resources/application.properties` from `src/main/resources/application.properties.example`, configure the database variables above, and set `ADMIN_USERNAME` and `ADMIN_PASSWORD` in the shell. Then run:
 
 ```sh
 sh ./mvnw spring-boot:run
 ```
 
-The backend listens on port `8081` by default.
+The default local port is `8081`. The actual `application.properties` file is ignored by Git. Never commit database or administrator credentials.
+
+## Tests
+
+```sh
+sh ./mvnw test
+```
+
+Tests use an in-memory H2 database and do not require the production MySQL credentials.

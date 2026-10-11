@@ -27,6 +27,9 @@ public class Complaint {
     @Column(nullable = false)
     private String emailAddress;
 
+    @Column(nullable = false, columnDefinition = "varchar(20) default 'pending'")
+    private String status = "pending";
+
     // Getters and setters
 
     public Long getId() {
@@ -83,5 +86,13 @@ public class Complaint {
 
     public void setEmailAddress(String emailAddress) {
         this.emailAddress = emailAddress;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

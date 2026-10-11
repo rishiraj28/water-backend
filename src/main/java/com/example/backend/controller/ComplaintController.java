@@ -6,10 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/complaints")
-@CrossOrigin
 public class ComplaintController {
 
     @Autowired
@@ -33,6 +33,11 @@ public class ComplaintController {
     @PutMapping("/{id}")
     public Complaint updateComplaint(@PathVariable Long id, @RequestBody Complaint complaint) {
         return complaintService.updateComplaint(id, complaint);
+    }
+
+    @PatchMapping("/{id}/status")
+    public Complaint updateComplaintStatus(@PathVariable Long id, @RequestBody Map<String, String> update) {
+        return complaintService.updateComplaintStatus(id, update.get("status"));
     }
 
     @DeleteMapping("/{id}")
