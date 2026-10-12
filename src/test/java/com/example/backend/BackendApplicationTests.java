@@ -1,24 +1,14 @@
 package com.example.backend;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
-import com.example.backend.config.CorsConfig;
-import com.example.backend.config.SecurityConfig;
-import com.example.backend.controller.AdminController;
-import com.example.backend.controller.ComplaintController;
-import com.example.backend.entity.Complaint;
-import com.example.backend.service.ComplaintService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.util.List;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -26,37 +16,46 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = { ComplaintController.class, AdminController.class })
-@Import({ SecurityConfig.class, CorsConfig.class })
-@TestPropertySource(properties = {
-		"app.admin.username=test-admin",
-		"app.admin.password=test-admin-password",
-		"app.cors.allowed-origins=http://localhost:3000"
-})
+@SpringBootTest
+@AutoConfigureMockMvc
 class BackendApplicationTests {
 
 	@Autowired
 	private MockMvc mockMvc;
 
-	@MockBean
-	private ComplaintService complaintService;
+	@Autowired
+	private ObjectMapper objectMapper;
 
 	@Test
 	void complaintSubmissionIsPublic() throws Exception {
-		when(complaintService.createComplaint(any(Complaint.class))).thenReturn(complaint("pending"));
-
-		mockMvc.perform(post("/api/complaints/add")
+		MvcResult result = mockMvc.perform(post("/api/complaints/add")
 				.contentType("application/json")
 				.content("""
-						{"name":"Test Citizen","address":"1 River Road","zone":"North","complaintType":"Water Leakage","phoneNumber":"1234567890","emailAddress":"citizen@example.com"}
+						{"name":"Test Citizen","address":"1 River Road","zone":"North","complaintType":"Water Leakage","phoneNumber":"1234567890","emailAddress":"citizen@example.com","description":"Water is leaking near the road."}
 						"""))
-				.andExpect(status().isOk());
+				.andExpect(status().isCreated())
+						.andExpect(jsonPath("$.description").value("Water is leaking near the road."))
+						.andExpect(jsonPath("$.id").isNumber())
+						.andReturn();
+
+				long savedId = objectMapper.readTree(result.getResponse().getContentAsString()).get("id").asLong();
+				mockMvc.perform(get("/api/complaints/getAll")
+						.with(httpBasic("test-admin", "test-admin-password")))
+						.andExpect(status().isOk())
+						.andExpect(jsonPath("$[*].id").value(org.hamcrest.Matchers.hasItem((int) savedId)))
+						.andExpect(jsonPath("$[*].description").value(org.hamcrest.Matchers.hasItem("Water is leaking near the road.")));
+	}
+
+	@Test
+	void complaintSubmissionRejectsInvalidData() throws Exception {
+		mockMvc.perform(post("/api/complaints/add")
+				.contentType("application/json")
+				.content("{\"name\":\"\"}"))
+				.andExpect(status().isBadRequest());
 	}
 
 	@Test
 	void complaintReadsRequireAdminAuthentication() throws Exception {
-		when(complaintService.getAllComplaints()).thenReturn(List.of());
-
 		mockMvc.perform(get("/api/complaints/getAll"))
 				.andExpect(status().isUnauthorized());
 
@@ -67,27 +66,26 @@ class BackendApplicationTests {
 
 	@Test
 	void adminCanPersistComplaintStatus() throws Exception {
-		when(complaintService.updateComplaintStatus("sample-id", "accepted"))
-				.thenReturn(complaint("accepted"));
+		MvcResult created = mockMvc.perform(post("/api/complaints/add")
+				.contentType("application/json")
+				.content("""
+						{"name":"Status Test","address":"2 River Road","zone":"South","complaintType":"Low Water Pressure","phoneNumber":"1234567890","emailAddress":"status@example.com","description":"Pressure is low."}
+						"""))
+				.andExpect(status().isCreated())
+				.andReturn();
+		long complaintId = objectMapper.readTree(created.getResponse().getContentAsString()).get("id").asLong();
 
-		mockMvc.perform(patch("/api/complaints/sample-id/status")
+		mockMvc.perform(patch("/api/complaints/" + complaintId + "/status")
 				.with(httpBasic("test-admin", "test-admin-password"))
 				.contentType("application/json")
-				.content("{\"status\":\"accepted\"}"))
+				.content("{\"status\":\"in_progress\"}"))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.status").value("accepted"));
+				.andExpect(jsonPath("$.status").value("in_progress"));
+
+		mockMvc.perform(get("/api/complaints/" + complaintId)
+				.with(httpBasic("test-admin", "test-admin-password")))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.status").value("in_progress"));
 	}
 
-	private Complaint complaint(String status) {
-		Complaint complaint = new Complaint();
-		complaint.setId("sample-id");
-		complaint.setName("Test Citizen");
-		complaint.setAddress("1 River Road");
-		complaint.setZone("North");
-		complaint.setComplaintType("Water Leakage");
-		complaint.setPhoneNumber("1234567890");
-		complaint.setEmailAddress("citizen@example.com");
-		complaint.setStatus(status);
-		return complaint;
-	}
 }

@@ -19,21 +19,22 @@ public class ComplaintService {
     }
 
     public List<Complaint> getAllComplaints() {
-        return complaintRepository.findAll();
+        return complaintRepository.findAllByOrderByCreatedAtDesc();
     }
 
-    public Complaint getComplaintById(String id) {
+    public Complaint getComplaintById(Long id) {
         return complaintRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Complaint not found with id: " + id));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Complaint not found with id: " + id));
     }
 
-    public Complaint updateComplaint(String id, Complaint complaint) {
+    public Complaint updateComplaint(Long id, Complaint complaint) {
         complaint.setId(id);
         return complaintRepository.save(complaint);
     }
 
-    public Complaint updateComplaintStatus(String id, String status) {
-        if (status == null || !List.of("pending", "accepted", "rejected").contains(status)) {
+    public Complaint updateComplaintStatus(Long id, String status) {
+        if (status == null || !List.of("pending", "in_progress", "resolved").contains(status)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid complaint status");
         }
 
@@ -42,7 +43,7 @@ public class ComplaintService {
         return complaintRepository.save(complaint);
     }
 
-    public void deleteComplaint(String id) {
+    public void deleteComplaint(Long id) {
         complaintRepository.deleteById(id);
     }
 }

@@ -28,21 +28,21 @@ class ComplaintServiceTests {
     private ComplaintService complaintService;
 
     @Test
-    void statusUpdateSavesTheMongoDocument() {
+    void statusUpdateSavesTheComplaint() {
         Complaint complaint = new Complaint();
-        when(complaintRepository.findById("sample-id")).thenReturn(Optional.of(complaint));
+        when(complaintRepository.findById(1L)).thenReturn(Optional.of(complaint));
         when(complaintRepository.save(complaint)).thenReturn(complaint);
 
-        Complaint updated = complaintService.updateComplaintStatus("sample-id", "accepted");
+        Complaint updated = complaintService.updateComplaintStatus(1L, "resolved");
 
-        assertEquals("accepted", updated.getStatus());
+        assertEquals("resolved", updated.getStatus());
         verify(complaintRepository).save(complaint);
     }
 
     @Test
-    void invalidStatusIsRejectedBeforeAccessingMongo() {
+    void invalidStatusIsRejectedBeforeAccessingRepository() {
         assertThrows(ResponseStatusException.class,
-                () -> complaintService.updateComplaintStatus("sample-id", "unknown"));
+                () -> complaintService.updateComplaintStatus(1L, "unknown"));
 
         verifyNoInteractions(complaintRepository);
     }
